@@ -1,0 +1,40 @@
+WITH CohortCalculation AS 
+(
+    SELECT
+        DATE_TRUNC(subscription_start, week) AS CohortWeek,
+        user_pseudo_id AS UserID,
+        subscription_start,
+        COALESCE(subscription_end, DATE '2021-02-07') AS SubscriptionEnd
+    FROM
+        `tc-da-1.turing_data_analytics.subscriptions`
+),
+RetentionCalculation AS 
+(
+    SELECT
+      CohortWeek,
+      COUNT(DISTINCT UserID) AS OnboardingWeek,
+      SUM(CASE WHEN SubscriptionEnd > DATE_ADD(CohortWeek, INTERVAL 1 WEEK) THEN 1 ELSE 0 END) / COUNT(DISTINCT UserID) AS Week1,
+      SUM(CASE WHEN SubscriptionEnd > DATE_ADD(CohortWeek, INTERVAL 2 WEEK) THEN 1 ELSE 0 END) / COUNT(DISTINCT UserID) AS Week2,
+      SUM(CASE WHEN SubscriptionEnd > DATE_ADD(CohortWeek, INTERVAL 3 WEEK) THEN 1 ELSE 0 END) / COUNT(DISTINCT UserID) AS Week3,
+      SUM(CASE WHEN SubscriptionEnd > DATE_ADD(CohortWeek, INTERVAL 4 WEEK) THEN 1 ELSE 0 END) / COUNT(DISTINCT UserID) AS Week4,
+      SUM(CASE WHEN SubscriptionEnd > DATE_ADD(CohortWeek, INTERVAL 5 WEEK) THEN 1 ELSE 0 END) / COUNT(DISTINCT UserID) AS Week5,
+      SUM(CASE WHEN SubscriptionEnd > DATE_ADD(CohortWeek, INTERVAL 6 WEEK) THEN 1 ELSE 0 END) / COUNT(DISTINCT UserID) AS Week6
+    FROM
+      CohortCalculation
+    GROUP BY 
+      CohortWeek
+)
+
+SELECT
+    CohortWeek,
+    100 AS OnboardingWeek,
+    ROUND(Week1 * 100, 2) AS Week1,
+    ROUND(Week2 * 100, 2) AS Week2,
+    ROUND(Week3 * 100, 2) AS Week3,
+    ROUND(Week4 * 100, 2) AS Week4,
+    ROUND(Week5 * 100, 2) AS Week5,
+    ROUND(Week6 * 100, 2) AS Week6
+FROM
+     RetentionCalculation
+ORDER BY 
+     CohortWeek
