@@ -6,7 +6,7 @@ WITH CohortCalculation AS
         subscription_start,
         COALESCE(subscription_end, DATE '2021-02-07') AS SubscriptionEnd
     FROM
-        `tc-da-1.turing_data_analytics.subscriptions`
+        `data_table`
 ),
 RetentionCalculation AS 
 (
